@@ -7,7 +7,6 @@ const datalist = document.getElementById('exercise-list');
 const clearLogBtn = document.getElementById('clear-log');
 
 const STORAGE_KEY = 'setcheck_logs';
-const EXERCISE_KEY = 'setcheck_exercises';
 
 // Table for rep max percentages (1-30 reps)
 const REP_PERCENTAGES = [
@@ -24,16 +23,14 @@ function saveLogs(logs) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
 }
 
-function getExercises() {
-  return JSON.parse(localStorage.getItem(EXERCISE_KEY) || '[]');
-}
-
-function saveExercises(exercises) {
-  localStorage.setItem(EXERCISE_KEY, JSON.stringify(exercises));
+function getUniqueExercisesFromLogs() {
+  const logs = getLogs();
+  const unique = Array.from(new Set(logs.map(log => log.exercise).filter(Boolean)));
+  return unique;
 }
 
 function updateDatalist() {
-  const exercises = getExercises();
+  const exercises = getUniqueExercisesFromLogs();
   datalist.innerHTML = '';
   exercises.forEach(ex => {
     const option = document.createElement('option');
@@ -69,14 +66,6 @@ form.addEventListener('submit', e => {
   const weight = weightInput.value;
   if (!exercise || !reps || !weight) return;
 
-  // Save exercise for autocomplete
-  let exercises = getExercises();
-  if (!exercises.includes(exercise)) {
-    exercises.push(exercise);
-    saveExercises(exercises);
-    updateDatalist();
-  }
-
   // Save log (do NOT store 1RM)
   const logs = getLogs();
   logs.push({
@@ -86,6 +75,7 @@ form.addEventListener('submit', e => {
     time: new Date().toLocaleString()
   });
   saveLogs(logs);
+  updateDatalist();
   renderLogs();
   form.reset();
   exerciseInput.focus();
