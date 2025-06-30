@@ -48,13 +48,37 @@ function calculateOneRepMax(weight, reps) {
   return Math.floor(weight / percent); // round down to nearest integer
 }
 
+// Format a date string as a human-friendly relative time
+function formatRelativeTime(dateString) {
+  const now = new Date();
+  const then = new Date(dateString);
+  const diffMs = now - then;
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+  const diffWeek = Math.floor(diffDay / 7);
+  const diffMonth = Math.floor(diffDay / 30);
+
+  if (diffSec < 60) return 'just now';
+  if (diffMin < 60) return `${diffMin} min${diffMin === 1 ? '' : 's'} ago`;
+  if (diffHour < 24) return `${diffHour} hour${diffHour === 1 ? '' : 's'} ago`;
+  if (diffDay === 1) return 'yesterday';
+  if (diffDay < 7) return `${diffDay} day${diffDay === 1 ? '' : 's'} ago`;
+  if (diffWeek === 1) return 'last week';
+  if (diffWeek < 5) return `${diffWeek} week${diffWeek === 1 ? '' : 's'} ago`;
+  if (diffMonth === 1) return 'last month';
+  return `${diffMonth} month${diffMonth === 1 ? '' : 's'} ago`;
+}
+
 function renderLogs() {
   const logs = getLogs();
   logsList.innerHTML = '';
   logs.slice().reverse().forEach(log => {
     const li = document.createElement('li');
     const oneRepMaxDisplay = (log.reps && log.weight) ? Math.floor(calculateOneRepMax(log.weight, log.reps)) : '?';
-    li.innerHTML = `<span><strong>${log.exercise}</strong> — 1RM: <strong>${oneRepMaxDisplay}</strong></span><span style="font-size:0.9em;color:#a08a6a;">${log.time}</span>`;
+    const timeDisplay = log.time ? formatRelativeTime(log.time) : '';
+    li.innerHTML = `<span><strong>${log.exercise}</strong> — 1RM: <strong>${oneRepMaxDisplay}</strong></span><span style="font-size:0.9em;color:#a08a6a;">${timeDisplay}</span>`;
     logsList.appendChild(li);
   });
 }
