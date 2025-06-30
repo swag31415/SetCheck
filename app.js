@@ -48,7 +48,7 @@ function calculateOneRepMax(weight, reps) {
   if (reps < 1 || reps > 30 || isNaN(weight)) return null;
   const percent = REP_PERCENTAGES[reps - 1];
   if (!percent) return null;
-  return +(weight / percent).toFixed(1); // round to 1 decimal
+  return Math.floor(weight / percent); // round down to nearest integer
 }
 
 function renderLogs() {
@@ -56,7 +56,8 @@ function renderLogs() {
   logsList.innerHTML = '';
   logs.slice().reverse().forEach(log => {
     const li = document.createElement('li');
-    li.innerHTML = `<span><strong>${log.exercise}</strong> — 1RM: <strong>${log.oneRepMax ?? '?'}</strong></span><span style="font-size:0.9em;color:#a08a6a;">${log.time}</span>`;
+    const oneRepMaxDisplay = (log.reps && log.weight) ? Math.floor(calculateOneRepMax(log.weight, log.reps)) : '?';
+    li.innerHTML = `<span><strong>${log.exercise}</strong> — 1RM: <strong>${oneRepMaxDisplay}</strong></span><span style="font-size:0.9em;color:#a08a6a;">${log.time}</span>`;
     logsList.appendChild(li);
   });
 }
@@ -68,10 +69,6 @@ form.addEventListener('submit', e => {
   const weight = weightInput.value;
   if (!exercise || !reps || !weight) return;
 
-  // Calculate 1RM
-  const oneRepMax = calculateOneRepMax(weight, reps);
-  if (!oneRepMax) return;
-
   // Save exercise for autocomplete
   let exercises = getExercises();
   if (!exercises.includes(exercise)) {
@@ -80,13 +77,12 @@ form.addEventListener('submit', e => {
     updateDatalist();
   }
 
-  // Save log (store 1RM instead of weight)
+  // Save log (do NOT store 1RM)
   const logs = getLogs();
   logs.push({
     exercise,
     reps,
     weight,
-    oneRepMax,
     time: new Date().toLocaleString()
   });
   saveLogs(logs);
