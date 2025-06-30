@@ -2,9 +2,9 @@ const form = document.getElementById('workout-form');
 const exerciseInput = document.getElementById('exercise');
 const repsInput = document.getElementById('reps');
 const weightInput = document.getElementById('weight');
-const logsList = document.getElementById('logs');
-const datalist = document.getElementById('exercise-list');
-const clearLogBtn = document.getElementById('clear-log');
+const flexLogList = document.getElementById('logs');
+const moveList = document.getElementById('exercise-list');
+const nukeLogBtn = document.getElementById('clear-log');
 
 const STORAGE_KEY = 'setcheck_logs';
 
@@ -23,19 +23,19 @@ function saveLogs(logs) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
 }
 
-function getUniqueExercisesFromLogs() {
+function getUniqueMoves() {
   const logs = getLogs();
   const unique = Array.from(new Set(logs.map(log => log.exercise).filter(Boolean)));
   return unique;
 }
 
-function updateDatalist() {
-  const exercises = getUniqueExercisesFromLogs();
-  datalist.innerHTML = '';
+function updateMoveList() {
+  const exercises = getUniqueMoves();
+  moveList.innerHTML = '';
   exercises.forEach(ex => {
     const option = document.createElement('option');
     option.value = ex;
-    datalist.appendChild(option);
+    moveList.appendChild(option);
   });
 }
 
@@ -73,7 +73,7 @@ function formatRelativeTime(dateString) {
 
 function renderLogs() {
   const logs = getLogs();
-  logsList.innerHTML = '';
+  flexLogList.innerHTML = '';
   // Sort logs by 1RM descending
   const sortedLogs = logs.slice().sort((a, b) => {
     const a1RM = (a.reps && a.weight) ? calculateOneRepMax(a.weight, a.reps) : 0;
@@ -85,7 +85,7 @@ function renderLogs() {
     const oneRepMaxDisplay = (log.reps && log.weight) ? Math.floor(calculateOneRepMax(log.weight, log.reps)) : '?';
     const timeDisplay = log.time ? formatRelativeTime(log.time) : '';
     li.innerHTML = `<span><strong>${log.exercise}</strong> — 1RM: <strong>${oneRepMaxDisplay}</strong></span><span style="font-size:0.9em;color:#a08a6a;">${timeDisplay}</span>`;
-    logsList.appendChild(li);
+    flexLogList.appendChild(li);
   });
 }
 
@@ -128,11 +128,11 @@ form.addEventListener('submit', e => {
         time: new Date().toLocaleString()
       };
       saveLogs(logs);
-      updateDatalist();
+      updateMoveList();
       renderLogs();
-      showToast('🎉 New PR! You beat your previous 1RM for this exercise!', 'success');
+      showToast('💪 New PR, beast mode unlocked!', 'success');
     } else {
-      showToast('⚠️ Not a PR. You did not beat your previous 1RM for this exercise.', 'warning');
+      showToast('😬 No PR this time, keep grinding!', 'warning');
     }
   } else {
     // Save log (do NOT store 1RM)
@@ -143,21 +143,21 @@ form.addEventListener('submit', e => {
       time: new Date().toLocaleString()
     });
     saveLogs(logs);
-    updateDatalist();
+    updateMoveList();
     renderLogs();
-    showToast('Logged new exercise!', 'info');
+    showToast("🔥 Move logged, keep flexin'!", 'info');
   }
   form.reset();
   exerciseInput.focus();
 });
 
-if (clearLogBtn) {
-  clearLogBtn.addEventListener('click', () => {
+if (nukeLogBtn) {
+  nukeLogBtn.addEventListener('click', () => {
     saveLogs([]);
     renderLogs();
   });
 }
 
 // Initial load
-updateDatalist();
-renderLogs(); 
+updateMoveList();
+renderLogs();

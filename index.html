@@ -14,18 +14,18 @@
   </header>
   <main>
     <form id="workout-form" autocomplete="off">
-      <input type="text" id="exercise" name="exercise" placeholder="Exercise name" list="exercise-list" required>
+      <input type="text" id="exercise" name="exercise" placeholder="Workout move" list="exercise-list" required>
       <datalist id="exercise-list"></datalist>
       <div class="row">
-        <input type="number" id="reps" name="reps" placeholder="Reps" min="1" required>
-        <input type="number" id="weight" name="weight" placeholder="Weight (kg/lb)" min="0" step="any" required>
+        <input type="number" id="reps" name="reps" placeholder="How many reps, bro?" min="1" required>
+        <input type="number" id="weight" name="weight" placeholder="Weight you lifted (kg/lb)" min="0" step="any" required>
       </div>
-      <button type="submit">Log Set</button>
+      <button type="submit">GAINS</button>
     </form>
     <section id="logs-section">
-      <h2>Workout Log</h2>
+      <h2>Leaderboard</h2>
       <ul id="logs"></ul>
-      <button id="clear-log" type="button">Clear Log</button>
+      <button id="clear-log" type="button">Nuke it</button>
     </section>
   </main>
   <script src="app.js"></script>
