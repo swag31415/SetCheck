@@ -74,7 +74,13 @@ function formatRelativeTime(dateString) {
 function renderLogs() {
   const logs = getLogs();
   logsList.innerHTML = '';
-  logs.slice().reverse().forEach(log => {
+  // Sort logs by 1RM descending
+  const sortedLogs = logs.slice().sort((a, b) => {
+    const a1RM = (a.reps && a.weight) ? calculateOneRepMax(a.weight, a.reps) : 0;
+    const b1RM = (b.reps && b.weight) ? calculateOneRepMax(b.weight, b.reps) : 0;
+    return b1RM - a1RM;
+  });
+  sortedLogs.forEach(log => {
     const li = document.createElement('li');
     const oneRepMaxDisplay = (log.reps && log.weight) ? Math.floor(calculateOneRepMax(log.weight, log.reps)) : '?';
     const timeDisplay = log.time ? formatRelativeTime(log.time) : '';
