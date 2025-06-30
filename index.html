@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SetCheck</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+</head>
+<body>
+  <header>
+    <img src="logo.svg" alt="SetCheck Logo" class="logo">
+    <h1>SetCheck</h1>
+  </header>
+  <main>
+    <form id="workout-form" autocomplete="off">
+      <input type="text" id="exercise" name="exercise" placeholder="Exercise name" list="exercise-list" required>
+      <datalist id="exercise-list"></datalist>
+      <div class="row">
+        <input type="number" id="sets" name="sets" placeholder="Sets" min="1" required>
+        <input type="number" id="reps" name="reps" placeholder="Reps" min="1" required>
+      </div>
+      <input type="number" id="weight" name="weight" placeholder="Weight (kg/lb)" min="0" step="any" required>
+      <button type="submit">Log Set</button>
+    </form>
+    <section id="logs-section">
+      <h2>Workout Log</h2>
+      <ul id="logs"></ul>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html> 

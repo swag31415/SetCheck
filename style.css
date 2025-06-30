@@ -1,0 +1,116 @@
+body {
+  margin: 0;
+  font-family: 'Inter', 'Avenir', 'Helvetica', sans-serif;
+  background: #f6ecd9;
+  color: #5a4632;
+  min-height: 100vh;
+}
+header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 0 0.5rem 0;
+  background: #e9d8b4;
+  box-shadow: 0 2px 8px rgba(90, 70, 50, 0.05);
+}
+.logo {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 0.5rem;
+}
+h1 {
+  font-size: 2rem;
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+main {
+  padding: 1rem;
+  max-width: 480px;
+  margin: 0 auto;
+}
+form#workout-form {
+  background: #fff8ed;
+  border-radius: 1.2rem;
+  box-shadow: 0 2px 12px rgba(90, 70, 50, 0.07);
+  padding: 1.2rem 1rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-bottom: 2rem;
+}
+#workout-form input[type="text"],
+#workout-form input[type="number"] {
+  font-size: 1.1rem;
+  padding: 0.7rem 1rem;
+  border: 1.5px solid #e9d8b4;
+  border-radius: 0.7rem;
+  background: #f6ecd9;
+  color: #5a4632;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 0.2rem;
+}
+#workout-form .row {
+  display: flex;
+  gap: 0.7rem;
+}
+#workout-form .row input {
+  flex: 1;
+  margin-bottom: 0;
+}
+#workout-form button {
+  background: #d6b98c;
+  color: #5a4632;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.7rem;
+  padding: 0.8rem;
+  margin-top: 0.3rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#workout-form button:hover {
+  background: #e9d8b4;
+}
+#logs-section {
+  background: #fff8ed;
+  border-radius: 1.2rem;
+  box-shadow: 0 2px 12px rgba(90, 70, 50, 0.07);
+  padding: 1rem;
+}
+#logs-section h2 {
+  font-size: 1.2rem;
+  margin: 0 0 0.7rem 0;
+  font-weight: 600;
+}
+#logs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+#logs li {
+  background: #f6ecd9;
+  border-radius: 0.7rem;
+  margin-bottom: 0.7rem;
+  padding: 0.7rem 1rem;
+  font-size: 1.05rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 4px rgba(90, 70, 50, 0.04);
+}
+@media (max-width: 600px) {
+  main {
+    padding: 0.5rem;
+  }
+  form#workout-form, #logs-section {
+    padding: 0.7rem;
+  }
+  .logo {
+    width: 44px;
+    height: 44px;
+  }
+} 
