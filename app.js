@@ -59,6 +59,22 @@ function renderLogs() {
   });
 }
 
+// Toast notification system
+function showToast(message, type = 'info') {
+  let toast = document.getElementById('toast-message');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast-message';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.className = `toast toast-${type}`;
+  toast.style.display = 'block';
+  setTimeout(() => {
+    toast.style.display = 'none';
+  }, 2500);
+}
+
 form.addEventListener('submit', e => {
   e.preventDefault();
   const exercise = exerciseInput.value.trim();
@@ -66,17 +82,41 @@ form.addEventListener('submit', e => {
   const weight = weightInput.value;
   if (!exercise || !reps || !weight) return;
 
-  // Save log (do NOT store 1RM)
-  const logs = getLogs();
-  logs.push({
-    exercise,
-    reps,
-    weight,
-    time: new Date().toLocaleString()
-  });
-  saveLogs(logs);
-  updateDatalist();
-  renderLogs();
+  const new1RM = calculateOneRepMax(weight, reps);
+  if (!new1RM) return;
+
+  // Get logs and check for existing exercise
+  let logs = getLogs();
+  const idx = logs.findIndex(log => log.exercise === exercise);
+  if (idx !== -1) {
+    const old1RM = calculateOneRepMax(logs[idx].weight, logs[idx].reps);
+    if (new1RM > old1RM) {
+      logs[idx] = {
+        exercise,
+        reps,
+        weight,
+        time: new Date().toLocaleString()
+      };
+      saveLogs(logs);
+      updateDatalist();
+      renderLogs();
+      showToast('🎉 New PR! You beat your previous 1RM for this exercise!', 'success');
+    } else {
+      showToast('⚠️ Not a PR. You did not beat your previous 1RM for this exercise.', 'warning');
+    }
+  } else {
+    // Save log (do NOT store 1RM)
+    logs.push({
+      exercise,
+      reps,
+      weight,
+      time: new Date().toLocaleString()
+    });
+    saveLogs(logs);
+    updateDatalist();
+    renderLogs();
+    showToast('Logged new exercise!', 'info');
+  }
   form.reset();
   exerciseInput.focus();
 });
