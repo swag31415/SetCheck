@@ -4,6 +4,7 @@ const repsInput = document.getElementById('reps');
 const weightInput = document.getElementById('weight');
 const logsList = document.getElementById('logs');
 const datalist = document.getElementById('exercise-list');
+const clearLogBtn = document.getElementById('clear-log');
 
 const STORAGE_KEY = 'setcheck_logs';
 const EXERCISE_KEY = 'setcheck_exercises';
@@ -93,6 +94,13 @@ form.addEventListener('submit', e => {
   form.reset();
   exerciseInput.focus();
 });
+
+if (clearLogBtn) {
+  clearLogBtn.addEventListener('click', () => {
+    saveLogs([]);
+    renderLogs();
+  });
+}
 
 // Initial load
 updateDatalist();

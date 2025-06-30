@@ -113,4 +113,22 @@ form#workout-form {
     width: 44px;
     height: 44px;
   }
+}
+#clear-log {
+  display: block;
+  margin: 16px auto 0 auto;
+  padding: 10px 24px;
+  background: #a08a6a;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+#clear-log:hover, #clear-log:focus {
+  background: #8a734a;
+  outline: none;
 } 
