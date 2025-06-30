@@ -1,6 +1,5 @@
 const form = document.getElementById('workout-form');
 const exerciseInput = document.getElementById('exercise');
-const setsInput = document.getElementById('sets');
 const repsInput = document.getElementById('reps');
 const weightInput = document.getElementById('weight');
 const logsList = document.getElementById('logs');
@@ -40,7 +39,7 @@ function renderLogs() {
   logsList.innerHTML = '';
   logs.slice().reverse().forEach(log => {
     const li = document.createElement('li');
-    li.innerHTML = `<span><strong>${log.exercise}</strong> &mdash; ${log.sets} x ${log.reps} @ ${log.weight}</span><span style="font-size:0.9em;color:#a08a6a;">${log.time}</span>`;
+    li.innerHTML = `<span><strong>${log.exercise}</strong> &mdash; ${log.reps} reps @ ${log.weight}</span><span style="font-size:0.9em;color:#a08a6a;">${log.time}</span>`;
     logsList.appendChild(li);
   });
 }
@@ -48,10 +47,9 @@ function renderLogs() {
 form.addEventListener('submit', e => {
   e.preventDefault();
   const exercise = exerciseInput.value.trim();
-  const sets = setsInput.value;
   const reps = repsInput.value;
   const weight = weightInput.value;
-  if (!exercise || !sets || !reps || !weight) return;
+  if (!exercise || !reps || !weight) return;
 
   // Save exercise for autocomplete
   let exercises = getExercises();
@@ -65,7 +63,6 @@ form.addEventListener('submit', e => {
   const logs = getLogs();
   logs.push({
     exercise,
-    sets,
     reps,
     weight,
     time: new Date().toLocaleString()
