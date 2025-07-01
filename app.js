@@ -73,6 +73,91 @@ function formatRelativeTime(dateString) {
   return `${diffMonth} month${diffMonth === 1 ? '' : 's'} ago`;
 }
 
+async function shareWorkoutImage(log) {
+  // Create a canvas
+  const canvas = document.createElement('canvas');
+  canvas.width = 500;
+  canvas.height = 300;
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  ctx.fillStyle = '#fffbe6';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Draw logo.svg in the top left
+  try {
+    const response = await fetch('logo.svg');
+    const svgText = await response.text();
+    const img = new window.Image();
+    const svgBlob = new Blob([svgText], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(svgBlob);
+    await new Promise((resolve, reject) => {
+      img.onload = () => {
+        ctx.drawImage(img, 20, 20, 64, 64);
+        URL.revokeObjectURL(url);
+        resolve();
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  } catch (e) {
+    // If logo fails to load, skip it
+  }
+
+  // Fun emoji
+  ctx.font = '48px sans-serif';
+  ctx.fillText('💪', 100, 70);
+
+  // Workout info
+  ctx.font = 'bold 28px sans-serif';
+  ctx.fillStyle = '#222';
+  ctx.fillText(`${log.exercise}`, 30, 120);
+  ctx.font = '24px sans-serif';
+  ctx.fillStyle = '#444';
+  ctx.fillText(`New PR: ${log.reps} reps @ ${log.weight} (${calculateOneRepMax(log.weight, log.reps)} 1RM)`, 30, 170);
+
+  // Fun message
+  ctx.font = '22px sans-serif';
+  ctx.fillStyle = '#a08a6a';
+  ctx.fillText('Beast mode unlocked! #SetCheck', 30, 220);
+
+  // Convert to blob
+  return new Promise((resolve) => {
+    canvas.toBlob(blob => {
+      resolve(blob);
+    }, 'image/png');
+  });
+}
+
+async function handleShare(log) {
+  const message = `💪 New PR in ${log.exercise}: ${log.reps} reps @ ${log.weight} (1RM: ${calculateOneRepMax(log.weight, log.reps)})! Beast mode unlocked! #SetCheck`;
+  if (navigator.canShare) {
+    try {
+      const imageBlob = await shareWorkoutImage(log);
+      const file = new File([imageBlob], 'pr.png', { type: 'image/png' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          text: message,
+          title: 'My New PR!'
+        });
+        return;
+      }
+    } catch (e) {
+      // fallback to text
+    }
+  }
+  // Fallback: just share text
+  if (navigator.share) {
+    await navigator.share({
+      text: message,
+      title: 'My New PR!'
+    });
+  } else {
+    showToast('Sharing is not supported on this browser.', 'warning');
+  }
+}
+
 function renderLogs() {
   const logs = getLogs();
   flexLogList.innerHTML = '';
@@ -81,6 +166,14 @@ function renderLogs() {
     const a1RM = (a.reps && a.weight) ? calculateOneRepMax(a.weight, a.reps) : 0;
     const b1RM = (b.reps && b.weight) ? calculateOneRepMax(b.weight, b.reps) : 0;
     return b1RM - a1RM;
+  });
+  // Find PRs: highest 1RM per exercise
+  const prMap = {};
+  sortedLogs.forEach(log => {
+    const oneRM = (log.reps && log.weight) ? calculateOneRepMax(log.weight, log.reps) : 0;
+    if (!prMap[log.exercise] || oneRM > prMap[log.exercise].oneRM) {
+      prMap[log.exercise] = { log, oneRM };
+    }
   });
   sortedLogs.forEach(log => {
     const li = document.createElement('li');
@@ -94,6 +187,28 @@ function renderLogs() {
       exerciseInput.focus();
       showToast(`Entered as ${log.reps} reps @ ${log.weight}`, 'info');
     });
+    // Add Share button if this is the PR for this exercise (all platforms)
+    const pr = prMap[log.exercise] && prMap[log.exercise].log === log;
+    if (pr) {
+      const shareBtn = document.createElement('button');
+      shareBtn.className = 'share-btn';
+      shareBtn.style.marginLeft = '10px';
+      shareBtn.style.display = 'inline-flex';
+      shareBtn.style.alignItems = 'center';
+      shareBtn.style.background = 'none';
+      shareBtn.style.border = 'none';
+      shareBtn.style.borderRadius = '0';
+      shareBtn.style.padding = '0';
+      shareBtn.style.cursor = 'pointer';
+      shareBtn.style.fontSize = '1em';
+      shareBtn.setAttribute('aria-label', 'Share this PR');
+      shareBtn.innerHTML = `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='#a08a6a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='18' cy='5' r='3'/><circle cx='6' cy='12' r='3'/><circle cx='18' cy='19' r='3'/><line x1='8.59' y1='13.51' x2='15.42' y2='17.49'/><line x1='15.41' y1='6.51' x2='8.59' y2='10.49'/></svg>`;
+      shareBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await handleShare(log);
+      });
+      li.appendChild(shareBtn);
+    }
     flexLogList.appendChild(li);
   });
 }
