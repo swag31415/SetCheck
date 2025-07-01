@@ -114,12 +114,14 @@ form#workout-form {
     height: 44px;
   }
 }
-#clear-log {
-  display: block;
-  margin: 16px auto 0 auto;
+#logs-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.7rem;
+  margin-top: 16px;
+}
+#clear-log, #export-log, #import-log {
   padding: 10px 24px;
-  background: #a08a6a;
-  color: #fff;
   border: none;
   border-radius: 6px;
   font-size: 1rem;
@@ -127,9 +129,27 @@ form#workout-form {
   cursor: pointer;
   transition: background 0.2s, box-shadow 0.2s;
   box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  color: #fff;
+}
+#clear-log {
+  background: #a08a6a;
 }
 #clear-log:hover, #clear-log:focus {
   background: #8a734a;
+  outline: none;
+}
+#export-log {
+  background: #4caf50;
+}
+#export-log:hover, #export-log:focus {
+  background: #388e3c;
+  outline: none;
+}
+#import-log {
+  background: #2196f3;
+}
+#import-log:hover, #import-log:focus {
+  background: #1769aa;
   outline: none;
 }
 .toast {

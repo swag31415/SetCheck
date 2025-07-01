@@ -5,6 +5,8 @@ const weightInput = document.getElementById('weight');
 const flexLogList = document.getElementById('logs');
 const moveList = document.getElementById('exercise-list');
 const nukeLogBtn = document.getElementById('clear-log');
+const exportLogBtn = document.getElementById('export-log');
+const importLogBtn = document.getElementById('import-log');
 
 const STORAGE_KEY = 'setcheck_logs';
 
@@ -162,6 +164,49 @@ if (nukeLogBtn) {
   nukeLogBtn.addEventListener('click', () => {
     saveLogs([]);
     renderLogs();
+  });
+}
+
+if (exportLogBtn) {
+  exportLogBtn.addEventListener('click', () => {
+    const logs = getLogs();
+    const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'setcheck_logs.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Logs exported!', 'success');
+  });
+}
+
+if (importLogBtn) {
+  importLogBtn.addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const logs = JSON.parse(event.target.result);
+          if (!Array.isArray(logs)) throw new Error('Invalid format');
+          saveLogs(logs);
+          updateMoveList();
+          renderLogs();
+          showToast('Logs imported!', 'success');
+        } catch (err) {
+          showToast('Import failed: Invalid file', 'warning');
+        }
+      };
+      reader.readAsText(file);
+    });
+    input.click();
   });
 }
 
