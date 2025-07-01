@@ -85,6 +85,13 @@ function renderLogs() {
     const oneRepMaxDisplay = (log.reps && log.weight) ? Math.floor(calculateOneRepMax(log.weight, log.reps)) : '?';
     const timeDisplay = log.time ? formatRelativeTime(log.time) : '';
     li.innerHTML = `<span><strong>${log.exercise}</strong> — 1RM: <strong>${oneRepMaxDisplay}</strong></span><span style="font-size:0.9em;color:#a08a6a;">${timeDisplay}</span>`;
+    // Add click event to prefill exercise name
+    li.style.cursor = 'pointer';
+    li.addEventListener('click', () => {
+      exerciseInput.value = log.exercise;
+      exerciseInput.focus();
+      showToast(`Entered as ${log.reps} reps @ ${log.weight}`, 'info');
+    });
     flexLogList.appendChild(li);
   });
 }
