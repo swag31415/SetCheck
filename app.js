@@ -7,6 +7,8 @@ const moveList = document.getElementById('exercise-list');
 const nukeLogBtn = document.getElementById('clear-log');
 const exportLogBtn = document.getElementById('export-log');
 const importLogBtn = document.getElementById('import-log');
+const onermDisplay = document.getElementById('onerm-display');
+const onermValue = document.getElementById('onerm-value');
 
 const STORAGE_KEY = 'setcheck_logs';
 
@@ -39,6 +41,23 @@ function updateMoveList() {
     option.value = ex;
     moveList.appendChild(option);
   });
+}
+
+function updateOneRMDisplay() {
+  const reps = repsInput.value;
+  const weight = weightInput.value;
+  
+  if (reps && weight && reps > 0 && weight > 0) {
+    const oneRM = calculateOneRepMax(weight, reps);
+    if (oneRM) {
+      onermValue.textContent = oneRM;
+      onermDisplay.style.display = 'block';
+    } else {
+      onermDisplay.style.display = 'none';
+    }
+  } else {
+    onermDisplay.style.display = 'none';
+  }
 }
 
 function calculateOneRepMax(weight, reps) {
@@ -328,3 +347,7 @@ if (importLogBtn) {
 // Initial load
 updateMoveList();
 renderLogs();
+
+// Add event listeners for real-time 1RM calculation
+repsInput.addEventListener('input', updateOneRMDisplay);
+weightInput.addEventListener('input', updateOneRMDisplay);
