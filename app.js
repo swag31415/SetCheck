@@ -252,6 +252,9 @@ const app = Vue.createApp({
         this.showToast('Sharing is not supported on this browser.', 'warning');
       }
     },
+    populateFieldsFromLog(log) {
+      this.exercise = log.exercise;
+    },
     toggleLogDetails(log) {
       const key = log.exercise + '-' + log.time;
       const idx = this.openLogKeys.indexOf(key);
@@ -260,6 +263,7 @@ const app = Vue.createApp({
       } else {
         this.openLogKeys.splice(idx, 1);
       }
+      this.populateFieldsFromLog(log);
     }
   },
   mounted() {
