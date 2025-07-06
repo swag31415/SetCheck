@@ -32,13 +32,24 @@
       <div id="logs-section">
         <h2>Leaderboard</h2>
         <ul id="logs">
-          <li v-for="log in sortedLogs" :key="log.exercise + '-' + log.time">
-            <span><strong>{{ log.exercise }}</strong> — 1RM: <strong>{{ calculateOneRepMax(log.weight, log.reps) }}</strong></span>
-            <span style="font-size:0.9em;color:#a08a6a;">{{ formatRelativeTime(log.time) }}</span>
-            <button v-if="isPR(log)" class="share-btn" @click.stop="handleShare(log)" aria-label="Share this PR" style="margin-left:10px;display:inline-flex;align-items:center;background:none;border:none;border-radius:0;padding:0;cursor:pointer;font-size:1em;">
-              <svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='#a08a6a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='18' cy='5' r='3'/><circle cx='6' cy='12' r='3'/><circle cx='18' cy='19' r='3'/><line x1='8.59' y1='13.51' x2='15.42' y2='17.49'/><line x1='15.41' y1='6.51' x2='8.59' y2='10.49'/></svg>
-            </button>
-          </li>
+          <template v-for="log in sortedLogs" :key="log.exercise + '-' + log.time">
+            <li @click="toggleLogDetails(log)" style="cursor:pointer;">
+              <span><strong>{{ log.exercise }}</strong> — 1RM: <strong>{{ calculateOneRepMax(log.weight, log.reps) }}</strong></span>
+              <span style="font-size:0.9em;color:#a08a6a;">{{ formatRelativeTime(log.time) }}</span>
+              <button v-if="isPR(log)" class="share-btn" @click.stop="handleShare(log)" aria-label="Share this PR" style="margin-left:10px;display:inline-flex;align-items:center;background:none;border:none;border-radius:0;padding:0;cursor:pointer;font-size:1em;">
+                <svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='#a08a6a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='18' cy='5' r='3'/><circle cx='6' cy='12' r='3'/><circle cx='18' cy='19' r='3'/><line x1='8.59' y1='13.51' x2='15.42' y2='17.49'/><line x1='15.41' y1='6.51' x2='8.59' y2='10.49'/></svg>
+              </button>
+            </li>
+            <transition name="fade-slide">
+              <div v-if="openLogKeys.includes(log.exercise + '-' + log.time)" class="log-details-menu">
+                <div><strong>Exercise:</strong> {{ log.exercise }}</div>
+                <div><strong>Reps:</strong> {{ log.reps }}</div>
+                <div><strong>Weight:</strong> {{ log.weight }}</div>
+                <div><strong>Logged:</strong> {{ log.time }}</div>
+                <div v-if="isPR(log)" style="color:#4caf50;font-weight:bold;">Personal Record!</div>
+              </div>
+            </transition>
+          </template>
         </ul>
         <div id="logs-actions">
           <button id="clear-log" @click="clearLogs">Clear Log</button>

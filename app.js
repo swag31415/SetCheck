@@ -16,6 +16,7 @@ const app = Vue.createApp({
       toastType: 'info',
       toastTimeout: null,
       importInput: null,
+      openLogKeys: [],
     };
   },
   computed: {
@@ -249,6 +250,15 @@ const app = Vue.createApp({
         });
       } else {
         this.showToast('Sharing is not supported on this browser.', 'warning');
+      }
+    },
+    toggleLogDetails(log) {
+      const key = log.exercise + '-' + log.time;
+      const idx = this.openLogKeys.indexOf(key);
+      if (idx === -1) {
+        this.openLogKeys.push(key);
+      } else {
+        this.openLogKeys.splice(idx, 1);
       }
     }
   },
