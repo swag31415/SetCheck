@@ -17,6 +17,7 @@ const app = Vue.createApp({
       toastTimeout: null,
       importInput: null,
       openLogKeys: [],
+      charts: {}, // Store chart instances
     };
   },
   computed: {
@@ -24,12 +25,23 @@ const app = Vue.createApp({
       return Array.from(new Set(this.logs.map(log => log.exercise).filter(Boolean)));
     },
     sortedLogs() {
-      // Sort logs by 1RM descending
-      return this.logs.slice().sort((a, b) => {
-        const a1RM = (a.reps && a.weight) ? this.calculateOneRepMax(a.weight, a.reps) : 0;
-        const b1RM = (b.reps && b.weight) ? this.calculateOneRepMax(b.weight, b.reps) : 0;
-        return b1RM - a1RM;
+      // Get the highest 1RM entry for each exercise
+      const exerciseMap = {};
+      this.logs.forEach(log => {
+        const oneRM = (log.reps && log.weight) ? this.calculateOneRepMax(log.weight, log.reps) : 0;
+        if (!exerciseMap[log.exercise] || oneRM > exerciseMap[log.exercise].oneRM) {
+          exerciseMap[log.exercise] = { log, oneRM };
+        }
       });
+      
+      // Convert to array and sort by 1RM descending
+      return Object.values(exerciseMap)
+        .map(item => item.log)
+        .sort((a, b) => {
+          const a1RM = (a.reps && a.weight) ? this.calculateOneRepMax(a.weight, a.reps) : 0;
+          const b1RM = (b.reps && b.weight) ? this.calculateOneRepMax(b.weight, b.reps) : 0;
+          return b1RM - a1RM;
+        });
     },
     showOneRM() {
       return this.reps && this.weight && this.reps > 0 && this.weight > 0 && this.oneRM;
@@ -105,33 +117,35 @@ const app = Vue.createApp({
       const new1RM = this.calculateOneRepMax(weight, reps);
       if (!new1RM) return;
       let logs = this.logs.slice();
-      const idx = logs.findIndex(log => log.exercise === exercise);
-      if (idx !== -1) {
-        const old1RM = this.calculateOneRepMax(logs[idx].weight, logs[idx].reps);
-        if (new1RM > old1RM) {
-          logs[idx] = {
-            exercise,
-            reps,
-            weight,
-            time: new Date().toLocaleString()
-          };
-          this.saveLogs(logs);
-          this.logs = logs;
-          this.showToast('💪 New PR, beast mode unlocked!', 'success');
-        } else {
-          this.showToast('😬 No PR this time, keep grinding!', 'warning');
-        }
+      
+      // Always add new log entry to show progression over time
+      logs.push({
+        exercise,
+        reps,
+        weight,
+        time: new Date().toLocaleString()
+      });
+      
+      this.saveLogs(logs);
+      this.logs = logs;
+      
+      // Check if this is a new PR
+      const exerciseLogs = logs.filter(log => log.exercise === exercise);
+      const currentPR = Math.max(...exerciseLogs.map(log => this.calculateOneRepMax(log.weight, log.reps)));
+      
+      if (new1RM === currentPR) {
+        this.showToast('💪 New PR, beast mode unlocked!', 'success');
       } else {
-        logs.push({
-          exercise,
-          reps,
-          weight,
-          time: new Date().toLocaleString()
-        });
-        this.saveLogs(logs);
-        this.logs = logs;
         this.showToast("🔥 Move logged, keep flexin'!", 'info');
       }
+      
+      // Refresh chart if it's open
+      if (this.openLogKeys.some(key => key.startsWith(exercise + '-'))) {
+        this.$nextTick(() => {
+          this.createProgressionChart(exercise);
+        });
+      }
+      
       this.exercise = '';
       this.reps = '';
       this.weight = '';
@@ -139,6 +153,7 @@ const app = Vue.createApp({
     clearLogs() {
       this.saveLogs([]);
       this.logs = [];
+      this.destroyAllCharts();
     },
     exportLogs() {
       const blob = new Blob([JSON.stringify(this.logs, null, 2)], { type: 'application/json' });
@@ -171,6 +186,15 @@ const app = Vue.createApp({
             this.saveLogs(logs);
             this.logs = logs;
             this.showToast('Logs imported!', 'success');
+            // Refresh any open charts
+            this.$nextTick(() => {
+              this.openLogKeys.forEach(key => {
+                const exercise = key.split('-').slice(0, -1).join('-');
+                if (this.charts[exercise]) {
+                  this.createProgressionChart(exercise);
+                }
+              });
+            });
           } catch (err) {
             this.showToast('Import failed: Invalid file', 'warning');
           }
@@ -260,10 +284,208 @@ const app = Vue.createApp({
       const idx = this.openLogKeys.indexOf(key);
       if (idx === -1) {
         this.openLogKeys.push(key);
+        this.$nextTick(() => {
+          this.createProgressionChart(log.exercise);
+        });
       } else {
         this.openLogKeys.splice(idx, 1);
+        this.destroyChart(log.exercise);
       }
       this.populateFieldsFromLog(log);
+    },
+    createProgressionChart(exercise) {
+      // Get all logs for this exercise, sorted by date
+      const exerciseLogs = this.logs
+        .filter(log => log.exercise === exercise)
+        .sort((a, b) => new Date(a.time) - new Date(b.time));
+      
+      if (exerciseLogs.length === 0) return;
+      
+      // Prepare chart data with PR tracking
+      let currentPR = 0;
+      const chartData = exerciseLogs.map(log => {
+        const oneRM = this.calculateOneRepMax(log.weight, log.reps);
+        const isPR = oneRM > currentPR;
+        if (isPR) currentPR = oneRM;
+        return {
+          x: new Date(log.time),
+          y: oneRM,
+          isPR: isPR,
+          log: log
+        };
+      });
+      
+      // Get chart canvas
+      const canvasId = 'chart-' + exercise.replace(/\s+/g, '-');
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      
+      // Destroy existing chart if it exists
+      this.destroyChart(exercise);
+      
+      // Create new chart
+      const ctx = canvas.getContext('2d');
+      const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          datasets: [
+            {
+              label: 'All Attempts',
+              data: chartData,
+              borderColor: '#a08a6a',
+              backgroundColor: 'rgba(160, 138, 106, 0.1)',
+              borderWidth: 2,
+              fill: false,
+              tension: 0.4,
+              pointBackgroundColor: chartData.map(d => d.isPR ? '#4caf50' : '#a08a6a'),
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              pointRadius: 4,
+              pointHoverRadius: 6
+            },
+            {
+              label: 'PR Progression',
+              data: chartData.filter(d => d.isPR),
+              borderColor: '#4caf50',
+              backgroundColor: 'rgba(76, 175, 80, 0.1)',
+              borderWidth: 3,
+              fill: true,
+              tension: 0.4,
+              pointBackgroundColor: '#4caf50',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              pointRadius: 6,
+              pointHoverRadius: 8
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: {
+              display: true,
+              text: `${exercise} - 1RM Progression`,
+              font: {
+                size: 14,
+                weight: 'bold'
+              },
+              color: '#222',
+              padding: {
+                top: 10,
+                bottom: 10
+              }
+            },
+            legend: {
+              display: true,
+              labels: {
+                usePointStyle: true,
+                padding: 15,
+                color: '#666',
+                font: {
+                  size: 11
+                }
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              borderColor: '#a08a6a',
+              borderWidth: 1,
+              cornerRadius: 6,
+              displayColors: false,
+              callbacks: {
+                title: function(context) {
+                  const date = new Date(context[0].parsed.x);
+                  return date.toLocaleDateString();
+                },
+                label: function(context) {
+                  const dataPoint = context[0].raw;
+                  const log = dataPoint.log;
+                  let label = `1RM: ${context.parsed.y} lbs`;
+                  if (dataPoint.isPR) {
+                    label += ' (PR!)';
+                  }
+                  label += ` (${log.reps} reps @ ${log.weight} lbs)`;
+                  return label;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              type: 'time',
+              time: {
+                unit: 'day',
+                displayFormats: {
+                  day: 'MMM d'
+                }
+              },
+              title: {
+                display: true,
+                text: 'Date',
+                color: '#666',
+                font: {
+                  size: 12
+                }
+              },
+              grid: {
+                color: 'rgba(0,0,0,0.1)'
+              },
+              ticks: {
+                color: '#666',
+                font: {
+                  size: 10
+                }
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: '1RM (lbs)',
+                color: '#666',
+                font: {
+                  size: 12
+                }
+              },
+              grid: {
+                color: 'rgba(0,0,0,0.1)'
+              },
+              ticks: {
+                color: '#666',
+                font: {
+                  size: 10
+                }
+              }
+            }
+          },
+          interaction: {
+            intersect: false,
+            mode: 'index'
+          },
+          elements: {
+            point: {
+              hoverBackgroundColor: '#8b7355'
+            }
+          }
+        }
+      });
+      
+      // Store chart instance
+      this.charts[exercise] = chart;
+    },
+    destroyChart(exercise) {
+      if (this.charts[exercise]) {
+        this.charts[exercise].destroy();
+        delete this.charts[exercise];
+      }
+    },
+    // Method to destroy all charts when clearing logs
+    destroyAllCharts() {
+      Object.keys(this.charts).forEach(exercise => {
+        this.destroyChart(exercise);
+      });
     }
   },
   mounted() {

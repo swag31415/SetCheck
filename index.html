@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="logo.svg" type="image/svg+xml">
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 </head>
 <body>
   <div id="app">
@@ -42,11 +44,7 @@
             </li>
             <transition name="fade-slide">
               <div v-if="openLogKeys.includes(log.exercise + '-' + log.time)" class="log-details-menu">
-                <div><strong>Exercise:</strong> {{ log.exercise }}</div>
-                <div><strong>Reps:</strong> {{ log.reps }}</div>
-                <div><strong>Weight:</strong> {{ log.weight }}</div>
-                <div><strong>Logged:</strong> {{ log.time }}</div>
-                <div v-if="isPR(log)" style="color:#4caf50;font-weight:bold;">Personal Record!</div>
+                <canvas :id="'chart-' + log.exercise.replace(/\s+/g, '-')" width="400" height="200"></canvas>
               </div>
             </transition>
           </template>
