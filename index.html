@@ -6,35 +6,49 @@
   <title>SetCheck</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 </head>
 <body>
-  <header>
-    <img src="logo.svg" alt="SetCheck Logo" class="logo">
-    <h1>SetCheck</h1>
-  </header>
-  <main>
-    <form id="workout-form" autocomplete="off">
-      <input type="text" id="exercise" name="exercise" placeholder="Workout move" list="exercise-list" required>
-      <datalist id="exercise-list"></datalist>
-      <div class="row">
-        <input type="number" id="reps" name="reps" placeholder="How many reps?" min="1" required>
-        <input type="number" id="weight" name="weight" placeholder="Weight you lifted" min="0" step="any" required>
+  <div id="app">
+    <header>
+      <img src="logo.svg" alt="SetCheck Logo" class="logo">
+      <h1>SetCheck</h1>
+    </header>
+    <main>
+      <form id="workout-form" @submit.prevent="handleSubmit">
+        <input id="exercise" type="text" v-model="exercise" list="exercise-list" placeholder="Exercise" required>
+        <datalist id="exercise-list">
+          <option v-for="move in uniqueMoves" :key="move" :value="move">{{ move }}</option>
+        </datalist>
+        <div class="row">
+          <input id="reps" v-model.number="reps" type="number" min="1" max="30" placeholder="Reps" required>
+          <input id="weight" v-model.number="weight" type="number" min="1" step="0.1" placeholder="Weight" required>
+        </div>
+        <button type="submit">Log Set</button>
+      </form>
+      <div id="onerm-display" class="onerm-display" v-if="showOneRM">
+        1RM Estimate: <span id="onerm-value"><strong>{{ oneRM }}</strong></span>
       </div>
-      <div id="onerm-display" class="onerm-display" style="display: none;">
-        <span>💪 Estimated 1RM: <strong id="onerm-value">0</strong></span>
+      <div id="logs-section">
+        <h2>Leaderboard</h2>
+        <ul id="logs">
+          <li v-for="log in sortedLogs" :key="log.exercise + '-' + log.time">
+            <span><strong>{{ log.exercise }}</strong> — 1RM: <strong>{{ calculateOneRepMax(log.weight, log.reps) }}</strong></span>
+            <span style="font-size:0.9em;color:#a08a6a;">{{ formatRelativeTime(log.time) }}</span>
+            <button v-if="isPR(log)" class="share-btn" @click.stop="handleShare(log)" aria-label="Share this PR" style="margin-left:10px;display:inline-flex;align-items:center;background:none;border:none;border-radius:0;padding:0;cursor:pointer;font-size:1em;">
+              <svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='#a08a6a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='18' cy='5' r='3'/><circle cx='6' cy='12' r='3'/><circle cx='18' cy='19' r='3'/><line x1='8.59' y1='13.51' x2='15.42' y2='17.49'/><line x1='15.41' y1='6.51' x2='8.59' y2='10.49'/></svg>
+            </button>
+          </li>
+        </ul>
+        <div id="logs-actions">
+          <button id="clear-log" @click="clearLogs">Clear Log</button>
+          <button id="export-log" @click="exportLogs">Export Log</button>
+          <button id="import-log" @click="importLogs">Import Log</button>
+        </div>
       </div>
-      <button type="submit">GAINS</button>
-    </form>
-    <section id="logs-section">
-      <h2>Leaderboard</h2>
-      <ul id="logs"></ul>
-      <div id="logs-actions">
-        <button id="clear-log" type="button">Nuke it</button>
-        <button id="export-log" type="button">Export</button>
-        <button id="import-log" type="button">Import</button>
-      </div>
-    </section>
-  </main>
+      <div v-if="toastMessage" :class="['toast', 'toast-' + toastType]" style="display:block;">{{ toastMessage }}</div>
+    </main>
+  </div>
   <script src="app.js"></script>
   <footer style="text-align:center; margin-top:2em; font-size:0.95em; color:#666;">
     vibe coded with <span style="color:#e25555;">&hearts;</span> by 
