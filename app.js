@@ -400,16 +400,6 @@ const app = Vue.createApp({
                   const date = new Date(context[0].parsed.x);
                   return date.toLocaleDateString();
                 },
-                label: function(context) {
-                  const dataPoint = context[0].raw;
-                  const log = dataPoint.log;
-                  let label = `1RM: ${context.parsed.y} lbs`;
-                  if (dataPoint.isPR) {
-                    label += ' (PR!)';
-                  }
-                  label += ` (${log.reps} reps @ ${log.weight} lbs)`;
-                  return label;
-                }
               }
             }
           },
@@ -474,12 +464,6 @@ const app = Vue.createApp({
       
       // Store chart instance
       this.charts[exercise] = chart;
-    },
-    destroyChart(exercise) {
-      if (this.charts[exercise]) {
-        this.charts[exercise].destroy();
-        delete this.charts[exercise];
-      }
     },
     // Method to destroy all charts when clearing logs
     destroyAllCharts() {
