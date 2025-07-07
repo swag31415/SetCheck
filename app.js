@@ -153,7 +153,6 @@ const app = Vue.createApp({
     clearLogs() {
       this.saveLogs([]);
       this.logs = [];
-      this.destroyAllCharts();
     },
     exportLogs() {
       const blob = new Blob([JSON.stringify(this.logs, null, 2)], { type: 'application/json' });
@@ -289,7 +288,6 @@ const app = Vue.createApp({
         });
       } else {
         this.openLogKeys.splice(idx, 1);
-        this.destroyChart(log.exercise);
       }
       this.populateFieldsFromLog(log);
     },
@@ -319,9 +317,6 @@ const app = Vue.createApp({
       const canvasId = 'chart-' + exercise.replace(/\s+/g, '-');
       const canvas = document.getElementById(canvasId);
       if (!canvas) return;
-      
-      // Destroy existing chart if it exists
-      this.destroyChart(exercise);
       
       // Create new chart
       const ctx = canvas.getContext('2d');
@@ -465,12 +460,6 @@ const app = Vue.createApp({
       // Store chart instance
       this.charts[exercise] = chart;
     },
-    // Method to destroy all charts when clearing logs
-    destroyAllCharts() {
-      Object.keys(this.charts).forEach(exercise => {
-        this.destroyChart(exercise);
-      });
-    }
   },
   mounted() {
     this.logs = this.getLogs();

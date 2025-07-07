@@ -104,6 +104,12 @@ form#workout-form {
   position: relative;
   z-index: 2;
 }
+#logs li > *:first-child {
+  margin-right: auto;
+}
+#logs li > *:not(:first-child) {
+  margin-left: 0.5rem;
+}
 .log-details-menu {
   background: #e9d8b4;
   border-radius: 0 0 0.7rem 0.7rem;
